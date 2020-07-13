@@ -15,14 +15,16 @@ var lutMutex = &sync.Mutex{}
 var lastRefreshTs int64
 
 func loadLut() {
-	f, err := os.Open("test.csv")
+	f, err := os.Open("/var/www/zerm/zm/short.csv")
 	if err != nil {
+		log.Printf("Error from os.Open: %e", err)
 		return
 	}
 	defer f.Close()
 
 	lines, err := csv.NewReader(f).ReadAll()
 	if err != nil {
+		log.Printf("Error from csv.ReadAll: %e", err)
 		return
 	}
 	lutMutex.Lock()
@@ -44,9 +46,10 @@ func main() {
 				log.Printf("Refreshing...")
 				loadLut()
 				lastRefreshTs = time.Now().Unix()
+				log.Printf("Done.")
 				fmt.Fprintf(w, "Refreshed.")
 			} else {
-				log.Printf("Not refreshing...")
+				log.Printf("Not refreshing.")
 				w.WriteHeader(423)
 				fmt.Fprintf(w, "I will only refresh every 10 minutes max.")
 			}
@@ -58,10 +61,12 @@ func main() {
 		}
 		url, ok := lut[short]
 		if !ok {
+			log.Printf("%s not found.", short)
 			w.WriteHeader(404)
-			fmt.Fprintf(w, "Couldn't find what you were looking for")
+			fmt.Fprintf(w, "Couldn't find what you were looking for.")
 			return
 		}
+		log.Printf("Redirecting: %s", url)
 		http.Redirect(w, r, url, 307)
 	})
 
