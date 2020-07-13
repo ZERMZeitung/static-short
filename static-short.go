@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -13,9 +15,21 @@ var lutMutex = &sync.Mutex{}
 var lastRefreshTs int64
 
 func loadLut() {
+	f, err := os.Open("test.csv")
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	lines, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		return
+	}
 	lutMutex.Lock()
-	lut = make(map[string]string)
-	//TODO: read table from file
+	lut = make(map[string]string, len(lines))
+	for _, line := range lines {
+		lut[line[0]] = line[1]
+	}
 	lutMutex.Unlock()
 }
 
