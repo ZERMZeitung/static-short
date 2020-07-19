@@ -1,2 +1,2 @@
 # zerm.link
-a new backend for zerm.link based on go
+a new backend for zerm.link written in go
